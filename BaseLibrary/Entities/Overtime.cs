@@ -1,0 +1,22 @@
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace BaseLibrary.Entities
+{
+    public class Overtime : OtherBaseEntity
+    {
+        [Required]
+        public DateTime StartDate { get; set; }
+
+        [Required]
+        public DateTime EndDate { get; set; }
+
+        public int NumberOfDays => (EndDate - StartDate).Days;
+
+        // Many to one relationship with VacationType
+
+        public OvertimeType? OverTimeType { get; set; }
+
+        [Required]
+        public int OverTimeTypeId { get; set; }
+        }
+}
