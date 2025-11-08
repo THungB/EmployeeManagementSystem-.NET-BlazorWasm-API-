@@ -1,8 +1,5 @@
 ﻿@page "/identity/account/login"
-@using Client.Pages.OtherPages
-@using Syncfusion.Blazor.Popups
 @layout AuthenticationLayout
-@inject SfDialogService DialogService
 
 <div class="container">
 	<div class="row">
@@ -11,7 +8,7 @@
 			<EditForm Enhance Model="User" OnValidSubmit="HandleLogin">
 				<DataAnnotationsValidator />
 				<div class="card bg-dark" style="opacity:0.5; margin-top:50%; border-radius:10px; color:white; font-weight:bold">
-					<div class="card-header text-center fs-5 mb-2">FLogin</div>
+					<div class="card-header text-center fs-5 mb-2">Login</div>
 					<div class="container">
 						<div class="row">
 							<div class="col-lg-4 col-md-4 col-sm-4"></div>
@@ -87,7 +84,7 @@
 
 	private async Task DisplayDialog(string content, string title)
 	{
-		await DialogService.AlertAsync(content, title);
+		await dialogService.AlertAsync(content, title);
 	}
 
 	private async Task CheckUserAuthentication()

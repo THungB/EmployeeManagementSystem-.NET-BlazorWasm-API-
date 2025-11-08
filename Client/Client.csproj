@@ -7,7 +7,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-	  <Content Include="ApplicationState\DepartmentState.cs" />
+	  <Content Include="ApplicationState\AllState.cs" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -16,9 +16,11 @@
 		<PackageReference Include="Microsoft.Extensions.Http" Version="9.0.10" />
 		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="9.0.10" />
 		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="9.0.10" PrivateAssets="all" />
-		<PackageReference Include="Syncfusion.Blazor.Buttons" Version="31.2.4" />
-		<PackageReference Include="Syncfusion.Blazor.Popups" Version="31.2.4" />
-		<PackageReference Include="Syncfusion.Blazor.Themes" Version="31.2.4" />
+		<PackageReference Include="Syncfusion.Blazor.Buttons" Version="31.2.5" />
+		<PackageReference Include="Syncfusion.Blazor.DropDowns" Version="31.2.5" />
+		<PackageReference Include="Syncfusion.Blazor.Grid" Version="31.2.5" />
+		<PackageReference Include="Syncfusion.Blazor.Popups" Version="31.2.5" />
+		<PackageReference Include="Syncfusion.Blazor.Themes" Version="31.2.5" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -28,7 +30,6 @@
 
 	<ItemGroup>
 	  <Folder Include="wwwroot\images\background\" />
-	  <Folder Include="wwwroot\images\Profile\" />
 	</ItemGroup>
 
 </Project>
