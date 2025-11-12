@@ -5,7 +5,7 @@ namespace BaseLibrary.DTOs
     public class EmployeeGrouping2
     {
         [Required]
-        public string JobNamer { get; set; } = string.Empty;
+        public string JobName { get; set; } = string.Empty;
 
         [Required, Range(1, 9999, ErrorMessage ="You must select branch")]
         public int BranchId { get; set; }

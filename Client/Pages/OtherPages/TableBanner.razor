@@ -1,6 +1,8 @@
-﻿<div class="container-fluid">
+﻿@inject AllState allState
+
+<div class="container-fluid">
     <div class="row">
-        <div class="col-lg-2 cursorStyle">
+        <div class="col-lg-2 cursorStyle" @onclick="allState.EmployeeClicked">
             <div class="card border-primary">
                 <div class="card-header">
                     <i class="bi bi-people text-primary"></i> Employees
@@ -8,7 +10,7 @@
             </div>
         </div>
 
-        <div class="col-lg-2 cursorStyle">
+        <div class="col-lg-2 cursorStyle" @onclick="ShowVacation">
             <div class="card border-success">
                 <div class="card-header">
                     <i class="bi bi-backpack3 text-success"></i> Vacation
@@ -16,7 +18,7 @@
             </div>
         </div>
 
-        <div class="col-lg-2 cursorStyle">
+        <div class="col-lg-2 cursorStyle" @onclick="ShowOvertime">
             <div class="card border-danger">
                 <div class="card-header">
                     <i class="bi bi-stopwatch text-danger"></i> Overtime
@@ -24,7 +26,7 @@
             </div>
         </div>
 
-        <div class="col-lg-2 cursorStyle">
+        <div class="col-lg-2 cursorStyle" @onclick="ShowDoctor">
             <div class="card border-warning">
                 <div class="card-header">
                     <i class="bi bi-hospital text-warning"></i> Doctor
@@ -32,14 +34,14 @@
             </div>
         </div>
 
-        <div class="col-lg-2 cursorStyle">
+        <div class="col-lg-2 cursorStyle" @onclick="ShowSanctions">
             <div class="card border-info">
                 <div class="card-header">
                     <i class="bi bi-x-octagon text-info"></i> Sanctions
                 </div>
             </div>
         </div>
-        <div class="col-lg-2 cursorStyle">
+        <div class="col-lg-2 cursorStyle" @onclick="allState.GeneralDepartmentClicked">
             <div class="card border-dark">
                 <div class="card-header">
                     <i class="bi bi-x-slack text-dark"></i> Departments
@@ -48,3 +50,30 @@
         </div>
     </div>
 </div>
+
+<style>
+    .cursorStyle {
+        cursor: pointer;
+        transition: transform 0.2s ease-in-out;
+    }
+
+        .cursorStyle:hover {
+            transform: translateY(-5px);
+        }
+
+    .card {
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        transition: box-shadow 0.2s ease-in-out;
+    }
+
+        .card:hover {
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+</style>
+
+@code {
+    private void ShowVacation() { }
+    private void ShowOvertime() { }
+    private void ShowDoctor() { }
+    private void ShowSanctions() { }
+}

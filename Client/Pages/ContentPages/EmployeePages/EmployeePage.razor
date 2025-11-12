@@ -1,5 +1,5 @@
 ﻿@implements IDisposable
-@if (AllState.ShowEmployee)
+@if (allState.ShowEmployee)
 {
 	if (ShowMainPage)
 	{
@@ -68,4 +68,8 @@
 		ShowAddOrUpdatePage = true;
 	}
 
+	public void Dispose()
+	{
+		allState.Action -= StateHasChanged;
+	}
 }

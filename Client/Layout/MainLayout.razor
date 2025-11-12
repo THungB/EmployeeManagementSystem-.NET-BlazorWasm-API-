@@ -1,5 +1,7 @@
 ﻿@using Client.Pages.OtherPages
 @using Microsoft.AspNetCore.Authorization
+@inject NavigationManager NavManager
+@inject AuthenticationStateProvider AuthStateProvider
 @inherits LayoutComponentBase
 @attribute [Authorize]
 

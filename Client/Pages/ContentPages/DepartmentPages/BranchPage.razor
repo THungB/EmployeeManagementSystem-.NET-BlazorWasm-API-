@@ -123,7 +123,7 @@
         {
             Branch = new();
             await GetBranches();
-            branchDialog?.ChangeTilte("Add");
+            branchDialog?.ChangeTitle("Add");
         }
     }
 
@@ -143,5 +143,24 @@
 		var result = await DisplayMessage(response.Flag, response.Message);
 		if (result)
 			await GetBranches();
+    }
+
+    private async Task<bool> DisplayMessage(bool flag, string message)
+    {
+        if (flag)
+        {
+            await dialogService.AlertAsync(message, "Success!");
+            return true;
+        }
+        else
+        {
+            await dialogService.AlertAsync(message, "Error!");
+            return false;
+        }
+    }
+
+      public void Dispose()
+    {
+        allState.Action -= StateHasChanged;
     }
 }

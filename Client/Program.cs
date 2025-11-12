@@ -18,8 +18,8 @@ builder.Services.AddTransient<CustomHttpHandler>();
 
 builder.Services.AddHttpClient("SystemApiClient", client =>
 {
-    client.BaseAddress = new Uri("https://localhost:7156/");
-}).AddHttpMessageHandler<CustomHttpHandler>(); ;
+    client.BaseAddress = new Uri("https://localhost:7137/");
+}).AddHttpMessageHandler<CustomHttpHandler>(); 
 
 builder.Services.AddAuthorizationCore();
 builder.Services.AddBlazoredLocalStorage();
@@ -44,5 +44,9 @@ builder.Services.AddScoped<IGenericServiceInterface<Employee>, GenericServiceImp
 builder.Services.AddScoped<AllState>();
 builder.Services.AddSyncfusionBlazor();
 builder.Services.AddScoped<SfDialogService>();
+
+// Register Syncfusion license
+//Syncfusion.Licensing.SyncfusionLicenseProvider.RegisterLicense("YOUR_LICENSE_KEY_HERE");
+
 
 await builder.Build().RunAsync();

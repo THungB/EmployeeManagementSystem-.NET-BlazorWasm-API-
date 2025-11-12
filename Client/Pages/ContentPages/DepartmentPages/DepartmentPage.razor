@@ -91,12 +91,12 @@
 
     private async Task GetDepartments()
     {
-        Department = await departmentService.GetAll(Constants.DepartmentBaseUrl);
+        Departments = await departmentService.GetAll(Constants.DepartmentBaseUrl);
     }
 
     private async Task GetGeneralDepartments()
     {
-        GeneralDepartment = await generalDepartmentService.GetAll(Constants.GeneralDepartmentBaseUrl);
+        GeneralDepartments = await generalDepartmentService.GetAll(Constants.GeneralDepartmentBaseUrl);
     }
 
     void AddButtonClicked()

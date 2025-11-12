@@ -1,30 +1,63 @@
 ﻿@page "/home/dashboard"
+@inject NavigationManager NavManager
+@inject AllState allState
+@implements IDisposable
 
 <TableBanner />
-<GeneralDepartmentPage />
-<DepartmentPage/>
-<BranchPage/>
-<CountryPage/>
-<CityPage/>
-<TownPage/>
-<UserPage/> 
-<EmployeePage/>
+
+@if (allState.ShowGeneralDepartment)
+{
+    <GeneralDepartmentPage />
+}
+else if (allState.ShowDepartment)
+{
+    <DepartmentPage />
+}
+else if (allState.ShowBranch)
+{
+    <BranchPage />
+}
+else if (allState.ShowCity)
+{
+    <CityPage />
+}
+else if (allState.ShowTown)
+{
+    <TownPage />
+}
+else if (allState.ShowUser)
+{
+    <UserPage />
+}
+else if (allState.ShowEmployee)
+{
+    <EmployeePage />
+}
 
 @code {
-    [CascadingParameter] public Task<AuthenticationState> AuthenticationState { get; set; }
+    [CascadingParameter] public Task<AuthenticationState>? AuthenticationState { get; set; }
 
     protected async override Task OnInitializedAsync()
     {
         await CheckUserAuthentication();
+        allState.Action += StateHasChanged;
     }
 
     private async Task CheckUserAuthentication()
     {
-        var user = (await AuthenticationState).User;
-        bool isUserAuthenticated = user.Identity!.IsAuthenticated;
-        if (!isUserAuthenticated)
+        if (AuthenticationState != null)
         {
-            NavManager.NavigateTo("/identity/account/login");
+            var user = (await AuthenticationState).User;
+            bool isUserAuthenticated = user.Identity!.IsAuthenticated;
+            if (!isUserAuthenticated)
+            {
+                NavManager.NavigateTo("/identity/account/login");
+            }
         }
+    }
+
+    public void Dispose()
+    {
+        allState.Action -= StateHasChanged;
     }
 }

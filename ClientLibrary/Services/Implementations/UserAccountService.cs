@@ -49,7 +49,7 @@ namespace ClientLibrary.Services.Implementations
             var httpClient = getHttpClient.GetPublicHttpClient();
             var result = await httpClient.PutAsJsonAsync($"{AuthUrl}/update-user", user);
             if (!result.IsSuccessStatusCode) return new GeneralResponse(false, "Error occureed");
-            return await result Content.ReadFromJsonAsync<GeneralResponse>()!;
+            return await result.Content.ReadFromJsonAsync<GeneralResponse>()!;
         }
 
         public async Task<List<SystemRole>> GetRoles()
@@ -64,7 +64,7 @@ namespace ClientLibrary.Services.Implementations
             var httpClient = await getHttpClient.GetPrivateHttpClient();
             var result = await httpClient.DeleteAsync($"{AuthUrl}/delete-user{id}");
             if(!result.IsSuccessStatusCode) return new GeneralResponse(false, "Error occureed");
-            return await result Content.ReadFromJsonAsync<GeneralResponse>()!;
+            return await result.Content.ReadFromJsonAsync<GeneralResponse>()!;
         }
     }
 }

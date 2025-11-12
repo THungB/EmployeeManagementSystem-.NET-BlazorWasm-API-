@@ -60,8 +60,7 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowBlazorWasm",
 
         builder => builder
-
-        .WithOrigins("https://localhost:7137", "http://localhost:5224", "http://localhost:7156") // Blazor WASM URL
+        .WithOrigins("https://localhost:7137", "http://localhost:5224", "http://localhost:7156", "https://localhost:7156") // Blazor WASM URL
         .AllowAnyMethod()
         .AllowAnyHeader()
         .AllowCredentials());
@@ -74,7 +73,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-app.UseHttpsRedirection();
-app.UseAuthorization();
-app.MapControllers();
-app.Run();
+app.UseHttpsRedirection();       // 1. Redirect to HTTPS
+app.UseCors("AllowBlazorWasm");  // 2. Enable CORS 
+app.UseAuthorization();          // 3. Check authorization
+app.MapControllers();            // 4. Map API endpoints
+app.Run();                       // 5. Run application
