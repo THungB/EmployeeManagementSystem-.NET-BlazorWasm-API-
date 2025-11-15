@@ -5,37 +5,26 @@
 
 <TableBanner />
 
-@if (allState.ShowGeneralDepartment)
+@if (CurrentPageComponent != null)
 {
-    <GeneralDepartmentPage />
-}
-else if (allState.ShowDepartment)
-{
-    <DepartmentPage />
-}
-else if (allState.ShowBranch)
-{
-    <BranchPage />
-}
-else if (allState.ShowCity)
-{
-    <CityPage />
-}
-else if (allState.ShowTown)
-{
-    <TownPage />
-}
-else if (allState.ShowUser)
-{
-    <UserPage />
-}
-else if (allState.ShowEmployee)
-{
-    <EmployeePage />
+    <DynamicComponent Type="CurrentPageComponent" />
 }
 
 @code {
     [CascadingParameter] public Task<AuthenticationState>? AuthenticationState { get; set; }
+
+    private Type? CurrentPageComponent => allState.CurrentView switch
+    {
+        ViewType.GeneralDepartment => typeof(GeneralDepartmentPage),
+        ViewType.Department => typeof(DepartmentPage),
+        ViewType.Branch => typeof(BranchPage),
+        ViewType.Country => typeof(CountryPage),
+        ViewType.City => typeof(CityPage),
+        ViewType.Town => typeof(TownPage),
+        ViewType.User => typeof(UserPage),
+        ViewType.Employee => typeof(EmployeePage),
+        _ => null
+    };
 
     protected async override Task OnInitializedAsync()
     {

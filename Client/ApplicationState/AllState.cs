@@ -1,92 +1,126 @@
 ﻿namespace Client.ApplicationStates
 {
+    public enum ViewType
+    {
+        None,
+        GeneralDepartment,
+        Department,
+        Branch,
+        Country,
+        City,
+        Town,
+        User,
+        Employee,
+        Vacation,
+        Overtime,
+        Doctor,
+        Sanction
+    }
+
     public class AllState
     {
-        // Scope action
-        public Action? Action { get; set; }
+        // Scope action - expose as an event so components can subscribe/unsubscribe using += and -=
+        public event Action? Action;
+
+        // Current view state
+        public ViewType CurrentView { get; private set; } = ViewType.None;
+
+        // Convenience properties for view checks used in Razor components
+        public bool ShowGeneralDepartment => CurrentView == ViewType.GeneralDepartment;
+        public bool ShowDepartment => CurrentView == ViewType.Department;
+        public bool ShowBranch => CurrentView == ViewType.Branch;
+        public bool ShowCountry => CurrentView == ViewType.Country;
+        public bool ShowCity => CurrentView == ViewType.City;
+        public bool ShowTown => CurrentView == ViewType.Town;
+        public bool ShowUser => CurrentView == ViewType.User;
+        public bool ShowEmployee => CurrentView == ViewType.Employee;
+        public bool ShowVacation => CurrentView == ViewType.Vacation;
+        public bool ShowOvertime => CurrentView == ViewType.Overtime;
+        public bool ShowDoctor => CurrentView == ViewType.Doctor;
+        public bool ShowSanction => CurrentView == ViewType.Sanction;
 
         // General Department
-        public bool ShowGeneralDepartment { get; set; }
         public void GeneralDepartmentClicked()
         {
-            ResetAllDepartments();
-            ShowGeneralDepartment = true;
+            CurrentView = ViewType.GeneralDepartment;
             Action?.Invoke();
         }
 
         // Department
-        public bool ShowDepartment { get; set; }
         public void DepartmentClicked()
         {
-            ResetAllDepartments();
-            ShowDepartment = true;
+            CurrentView = ViewType.Department;
             Action?.Invoke();
         }
 
         // Branch
-        public bool ShowBranch { get; set; }
         public void BranchClicked()
         {
-            ResetAllDepartments();
-            ShowBranch = true;
+            CurrentView = ViewType.Branch;
             Action?.Invoke();
         }
 
         // Country
-        public bool ShowCountry { get; set; }
         public void CountryClicked()
         {
-            ResetAllDepartments();
-            ShowCountry = true;
+            CurrentView = ViewType.Country;
             Action?.Invoke();
         }
 
         // City
-        public bool ShowCity { get; set; }
         public void CityClicked()
         {
-            ResetAllDepartments();
-            ShowCity = true;
+            CurrentView = ViewType.City;
             Action?.Invoke();
         }
 
         // Town
-        public bool ShowTown { get; set; }
         public void TownClicked()
         {
-            ResetAllDepartments();
-            ShowTown = true;
+            CurrentView = ViewType.Town;
             Action?.Invoke();
         }
 
         // User
-        public bool ShowUser { get; set; }
         public void UserClicked()
         {
-            ResetAllDepartments();
-            ShowUser = true;
+            CurrentView = ViewType.User;
             Action?.Invoke();
         }
 
         // Employee
-        public bool ShowEmployee { get; set; }
         public void EmployeeClicked()
         {
-            ResetAllDepartments();
-            ShowEmployee = true;
+            CurrentView = ViewType.Employee;
             Action?.Invoke();
         }
 
-        private void ResetAllDepartments()
+        // Vacation
+        public void VacationClicked()
         {
-            ShowGeneralDepartment = false;
-            ShowDepartment = false;
-            ShowBranch = false;
-            ShowCountry = false;
-            ShowCity = false;
-            ShowTown = false;
-            ShowUser = false;
-            ShowEmployee = false;
+            CurrentView = ViewType.Vacation;
+            Action?.Invoke();
+        }
+
+        // Overtime
+        public void OvertimeClicked()
+        {
+            CurrentView = ViewType.Overtime;
+            Action?.Invoke();
+        }
+
+        // Doctor
+        public void DoctorClicked()
+        {
+            CurrentView = ViewType.Doctor;
+            Action?.Invoke();
+        }
+
+        // Sanction
+        public void SanctionClicked()
+        {
+            CurrentView = ViewType.Sanction;
+            Action?.Invoke();
         }
     }
 }

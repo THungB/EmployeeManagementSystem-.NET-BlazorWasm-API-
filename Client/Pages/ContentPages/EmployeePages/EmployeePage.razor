@@ -50,7 +50,7 @@
 
 	protected async override Task OnInitializedAsync()
 	{
-		allState.Action = StateHasChanged;
+		allState.Action += StateHasChanged;
 		await LoadEmployees();
 	}
 

@@ -73,8 +73,9 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-app.UseHttpsRedirection();       // 1. Redirect to HTTPS
-app.UseCors("AllowBlazorWasm");  // 2. Enable CORS 
-app.UseAuthorization();          // 3. Check authorization
-app.MapControllers();            // 4. Map API endpoints
-app.Run();                       // 5. Run application
+app.UseHttpsRedirection();       // Redirect to HTTPS
+app.UseCors("AllowBlazorWasm");  // Enable CORS 
+app.UseAuthentication();         // Check authentication
+app.UseAuthorization();          // Check authorization
+app.MapControllers();            // Map API endpoints
+app.Run();                       // Run application

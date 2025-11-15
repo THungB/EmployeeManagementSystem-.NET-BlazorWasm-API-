@@ -62,7 +62,7 @@ namespace ClientLibrary.Services.Implementations
         public async Task<GeneralResponse> DeleteUser(int id)
         {
             var httpClient = await getHttpClient.GetPrivateHttpClient();
-            var result = await httpClient.DeleteAsync($"{AuthUrl}/delete-user{id}");
+            var result = await httpClient.DeleteAsync($"{AuthUrl}/delete-user/{id}");
             if(!result.IsSuccessStatusCode) return new GeneralResponse(false, "Error occureed");
             return await result.Content.ReadFromJsonAsync<GeneralResponse>()!;
         }
