@@ -2,21 +2,20 @@
 using Microsoft.AspNetCore.Components.Authorization;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using ClientLibrary.Services.Implementations;
 
 namespace ClientLibrary.Helpers
 {
-    public class CustomAuthenticationStateProvider(LocalStorageService localStorageService) : AuthenticationStateProvider
+    public class CustomAuthenticationStateProvider(LocalStorageService localStorageService, AccessTokenProvider accessTokenProvider) : AuthenticationStateProvider
     {
         private readonly ClaimsPrincipal anoymous = new(new ClaimsIdentity());
         public override async Task<AuthenticationState> GetAuthenticationStateAsync()
         {
-            var stringToken = await localStorageService.GetToken();
-            if (string.IsNullOrWhiteSpace(stringToken)) return await Task.FromResult(new AuthenticationState(anoymous));
+            // Read access token from in-memory provider
+            var token = await accessTokenProvider.GetTokenAsync();
+            if (string.IsNullOrWhiteSpace(token)) return await Task.FromResult(new AuthenticationState(anoymous));
 
-            var deserializedToken = Serializations.DeserializeJsonString<UserSession>(stringToken);
-            if (deserializedToken == null) return await Task.FromResult(new AuthenticationState(anoymous));
-
-            var getUserClaims = DecryptToken(deserializedToken.Token!);
+            var getUserClaims = DecryptToken(token);
             if (getUserClaims == null) return await Task.FromResult(new AuthenticationState(anoymous));
 
             var claimsPrincipal = SetClaimPrincipal(getUserClaims);
@@ -26,16 +25,16 @@ namespace ClientLibrary.Helpers
         public async Task UpdateAuthenticationState(UserSession userSession)
         {
             var claimsPrincipal = new ClaimsPrincipal();
-            if (userSession.Token != null || userSession.RefreshToken != null)
+            if (!string.IsNullOrEmpty(userSession.Token))
             {
-                var serializeSession = Serializations.SerializeObj(userSession);
-                await localStorageService.SetToken(serializeSession);
+                // Store only access token in-memory. Refresh token is stored server-side in HttpOnly cookie.
+                await accessTokenProvider.SetTokenAsync(userSession.Token);
                 var getUserClaims = DecryptToken(userSession.Token!);
                 claimsPrincipal = SetClaimPrincipal(getUserClaims);
             }
             else
             {
-                await localStorageService.RemoveToken();
+                await accessTokenProvider.RemoveTokenAsync();
             }
             NotifyAuthenticationStateChanged(Task.FromResult(new AuthenticationState(claimsPrincipal)));
         }

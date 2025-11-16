@@ -22,14 +22,13 @@ namespace Server.Controllers
         public async Task<IActionResult> SignInAsync(Login user)
         {
             if (user == null) return BadRequest("User data is null.");
-            var result = await accountInterface.SignInAsync(user);
+            var result = await accountInterface.SignInAsync(user, HttpContext);
             return Ok(result);
         }
         [HttpPost("refresh-token")]
-        public async Task<IActionResult> RefreshTokenAsync(RefreshToken token)
+        public async Task<IActionResult> RefreshTokenAsync()
         {
-            if (token == null) return BadRequest("Mofel is empty.");
-            var result = await accountInterface.RefreshTokenAsync(token);
+            var result = await accountInterface.RefreshTokenAsync(HttpContext);
             return Ok(result);
         }
 

@@ -1,4 +1,5 @@
 ﻿using BaseLibrary.DTOs;
+using Microsoft.AspNetCore.Http;
 using BaseLibrary.Entities;
 using BaseLibrary.Responses;
 using Microsoft.EntityFrameworkCore;
@@ -65,38 +66,59 @@ namespace ServerLibrary.Repositories.Implementations
             }
             return new GeneralResponse(true, "Account created!");
         }
-        public async Task<LoginResponse> SignInAsync(Login user)
+        public async Task<LoginWithCookieResponse> SignInAsync(Login user, HttpContext httpContext)
         {
-            if (user is null) return new LoginResponse(false, "Model is empty");
+            if (user is null) return new LoginWithCookieResponse { Success = false, Message = "Model is empty" };
 
             var applicationUser = await FindUserByEmail(user.Email!);
-            if (applicationUser is null) return new LoginResponse(false, "User not found");
+            if (applicationUser is null) return new LoginWithCookieResponse { Success = false, Message = "User not found" };
 
             // Verify password
             if (!BCrypt.Net.BCrypt.Verify(user.Password, applicationUser.Password))
-                return new LoginResponse(false, "Email or Password not valid");
+                return new LoginWithCookieResponse { Success = false, Message = "Email or Password not valid" };
 
             var getUserRole = await FindUserRole(applicationUser.Id);
-            if (getUserRole is null) return new LoginResponse(false, "User role not found");
+            if (getUserRole is null) return new LoginWithCookieResponse { Success = false, Message = "User role not found" };
 
             var getRoleName = await FindRoleName(getUserRole.RoleId);
-            if (getUserRole is null) return new LoginResponse(false, "User role not found");
+            if (getRoleName is null) return new LoginWithCookieResponse { Success = false, Message = "User role not found" };
 
-            string jwtToken = GenerateToken(applicationUser, getRoleName!.Name!);   
+            // Generate tokens
+            string jwtToken = GenerateToken(applicationUser, getRoleName.Name!);
             string refreshToken = GenerateRefreshToken();
 
             // Save the Refresh token to database
             var findUser = await appDbContext.RefreshTokenInfos.FirstOrDefaultAsync(_ => _.UserId == applicationUser.Id);
             if (findUser is not null)
             {
-                findUser!.Token = refreshToken;
+                findUser.Token = refreshToken;
                 await appDbContext.SaveChangesAsync();
             }
             else
             {
                 await AddToDatabase(new RefreshTokenInfo() { Token = refreshToken, UserId = applicationUser.Id });
             }
-                return new LoginResponse(true, "Login successfully", jwtToken, refreshToken);
+
+            // Set refresh token in HTTP-only cookie
+            var cookieOptions = new CookieOptions
+            {
+                HttpOnly = true,
+                Expires = DateTime.UtcNow.AddDays(7),
+                Secure = true,
+                SameSite = SameSiteMode.Strict,
+                Path = "/api/authentication/refresh-token"
+            };
+
+            httpContext.Response.Cookies.Append("refreshToken", refreshToken, cookieOptions);
+
+            // Return response with access token (refresh token is in cookie)
+            return new LoginWithCookieResponse
+            {
+                Success = true,
+                Message = "Login successful",
+                Token = jwtToken,
+                Roles = new[] { getRoleName.Name! }
+            };
         }
         private string GenerateToken(ApplicationUser user, string role)
         {
@@ -132,28 +154,61 @@ namespace ServerLibrary.Repositories.Implementations
             await appDbContext.SaveChangesAsync();
             return (T)result.Entity;
         }
-        public async Task<LoginResponse> RefreshTokenAsync(RefreshToken token)
+        public async Task<LoginWithCookieResponse> RefreshTokenAsync(HttpContext httpContext)
         {
-            if (token is null) return new LoginResponse(false, "Model is empty");
+            // Get refresh token from cookie
+            var refreshToken = httpContext.Request.Cookies["refreshToken"];
+            if (string.IsNullOrEmpty(refreshToken))
+                return new LoginWithCookieResponse { Success = false, Message = "Refresh token is required" };
 
-            var findToken = await appDbContext.RefreshTokenInfos.FirstOrDefaultAsync(_ => _.Token!.Equals(token.Token));
-            if (findToken is null) return new LoginResponse(false, "Refresh token is required");
+            var findToken = await appDbContext.RefreshTokenInfos
+                .FirstOrDefaultAsync(rt => rt.Token!.Equals(refreshToken));
+                
+            if (findToken is null) 
+                return new LoginWithCookieResponse { Success = false, Message = "Invalid refresh token" };
 
             // Get user details
-            var user = await appDbContext.ApplicationUsers.FirstOrDefaultAsync(_ => _.Id == findToken.UserId);
-            if (user is null) return new LoginResponse(false, "Refresh token could not be generated because user not found");
+            var user = await appDbContext.ApplicationUsers
+                .FirstOrDefaultAsync(u => u.Id == findToken.UserId);
+                
+            if (user is null) 
+                return new LoginWithCookieResponse { Success = false, Message = "User not found" };
 
             var userRole = await FindUserRole(user.Id);
+            if (userRole is null) 
+                return new LoginWithCookieResponse { Success = false, Message = "User role not found" };
+
             var roleName = await FindRoleName(userRole.RoleId);
-            string jwtToken = GenerateToken(user, roleName.Name!);
-            string refreshToken = GenerateRefreshToken();
+            if (roleName is null) 
+                return new LoginWithCookieResponse { Success = false, Message = "Role not found" };
 
-            var updateRefreshToken = await appDbContext.RefreshTokenInfos.FirstOrDefaultAsync(_ => _.UserId == user.Id);
-            if (updateRefreshToken is null) return new LoginResponse(false, "Refresh token could not be generated because user has not sign in");
+            // Generate new tokens
+            string newJwtToken = GenerateToken(user, roleName.Name!);
+            string newRefreshToken = GenerateRefreshToken();
 
-            updateRefreshToken.Token = refreshToken;
+            // Update the refresh token in database
+            findToken.Token = newRefreshToken;
             await appDbContext.SaveChangesAsync();
-            return new LoginResponse(true, "Token refreshed successfully", jwtToken, refreshToken);
+
+            // Set new refresh token in HTTP-only cookie
+            var cookieOptions = new CookieOptions
+            {
+                HttpOnly = true,
+                Expires = DateTime.UtcNow.AddDays(7),
+                Secure = true,
+                SameSite = SameSiteMode.Strict,
+                Path = "/api/authentication/refresh-token"
+            };
+
+            httpContext.Response.Cookies.Append("refreshToken", newRefreshToken, cookieOptions);
+
+            return new LoginWithCookieResponse
+            {
+                Success = true,
+                Message = "Token refreshed successfully",
+                Token = newJwtToken,
+                Roles = new[] { roleName.Name! }
+            };
         }
 
         public async Task<List<ManageUser>> GetUsers()

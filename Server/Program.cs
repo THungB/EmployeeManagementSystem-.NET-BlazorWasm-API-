@@ -15,38 +15,66 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+// Configure JWT
 builder.Services.Configure<JwtSection>(builder.Configuration.GetSection("JwtSection"));
 var jwtSection = builder.Configuration.GetSection(nameof(JwtSection)).Get<JwtSection>();
 
-// Starting
+// Configure Database Context
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
-
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection") ??
-
         throw new InvalidOperationException("Sorry, can not find your connection!"));
 });
 
+// Configure CORS
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowBlazorWasm", policy =>
+    {
+        policy.WithOrigins("https://localhost:7137", "http://localhost:5224", 
+                          "http://localhost:7156", "https://localhost:7156")
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials();
+    });
+});
+
+// Configure Anti-Forgery
+builder.Services.AddAntiforgery(options =>
+{
+    options.HeaderName = "X-CSRF-TOKEN";
+    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+    options.Cookie.SameSite = SameSiteMode.Strict;
+    options.Cookie.HttpOnly = true;
+    options.Cookie.Name = "CSRF-TOKEN";
+});
+
+// Configure JWT Authentication
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-}).AddJwtBearer(options =>
+    options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
 {
+    options.SaveToken = true;
+    options.RequireHttpsMetadata = true;
     options.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateIssuer = true,
         ValidateAudience = true,
         ValidateIssuerSigningKey = true,
         ValidateLifetime = true,
+        ClockSkew = TimeSpan.Zero, // No clock skew for better security
         ValidIssuer = jwtSection!.Issuer,
         ValidAudience = jwtSection.Audience,
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSection.Key!))
     };
 });
 
+// Register Repositories
 builder.Services.AddScoped<IUserAccount, UserAccountRepository>();
-
 builder.Services.AddScoped<IGenericRepositoryInterface<GeneralDepartment>, GeneralDepartmentRepository>();
 builder.Services.AddScoped<IGenericRepositoryInterface<Department>, DepartmentRepository>();
 builder.Services.AddScoped<IGenericRepositoryInterface<Branch>, BranchRepository>();
@@ -55,16 +83,6 @@ builder.Services.AddScoped<IGenericRepositoryInterface<City>, CityRepository>();
 builder.Services.AddScoped<IGenericRepositoryInterface<Town>, TownRepository>();
 builder.Services.AddScoped<IGenericRepositoryInterface<Employee>, EmployeeRepository>();
 
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowBlazorWasm",
-
-        builder => builder
-        .WithOrigins("https://localhost:7137", "http://localhost:5224", "http://localhost:7156", "https://localhost:7156") // Blazor WASM URL
-        .AllowAnyMethod()
-        .AllowAnyHeader()
-        .AllowCredentials());
-});
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

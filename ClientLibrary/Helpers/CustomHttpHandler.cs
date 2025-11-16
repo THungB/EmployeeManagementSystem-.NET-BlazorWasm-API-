@@ -4,7 +4,7 @@ using System.Net;
 
 namespace ClientLibrary.Helpers
 {
-    public class CustomHttpHandler(GetHttpClient getHttpClient, LocalStorageService localStorageService, IUserAccountService accountService) : DelegatingHandler
+    public class CustomHttpHandler(GetHttpClient getHttpClient, LocalStorageService localStorageService, IUserAccountService accountService, ClientLibrary.Services.Implementations.AccessTokenProvider accessTokenProvider) : DelegatingHandler
     {
         protected async override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
@@ -18,28 +18,17 @@ namespace ClientLibrary.Helpers
 
             if (result.StatusCode == HttpStatusCode.Unauthorized)
             {
-                // Get token from localStorage
-                var stringToken = await localStorageService.GetToken();
-                if (stringToken == null) return result;
-
-                // Check if the header contains token
-                string token = string.Empty;
-                try
+                // Get token from in-memory provider
+                var currentToken = await accessTokenProvider.GetTokenAsync();
+                // If request has no Authorization header, and we have a token, attach it
+                if (!request.Headers.Contains("Authorization") && !string.IsNullOrEmpty(currentToken))
                 {
-                    token = request.Headers.Authorization!.Parameter!;
-                }
-                catch { }
-
-                var deserializedToken = Serializations.DeserializeJsonString<UserSession>(stringToken);
-                if (deserializedToken.Token is null) return result;
-                if (string.IsNullOrEmpty(token) )
-                {
-                    request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", deserializedToken.Token);
+                    request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", currentToken);
                     return await base.SendAsync(request, cancellationToken);
                 }
 
-                // Call for refresh token
-                var newJwtToken = await GetReshToken(deserializedToken.RefreshToken!);
+                // Attempt refresh using cookie-based refresh endpoint
+                var newJwtToken = await GetReshToken();
                 if (string.IsNullOrEmpty(newJwtToken)) return result;
 
                 request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", newJwtToken);
@@ -48,12 +37,13 @@ namespace ClientLibrary.Helpers
             return result;
         }
 
-        private async Task<string> GetReshToken(string refreshToken)
+        private async Task<string> GetReshToken()
         {
-            var result = await accountService.RefreshTokenAsync(new RefreshToken { Token = refreshToken });
-            string serializedToken = Serializations.SerializeObj(new UserSession()
-            { Token = result.Token, RefreshToken = result.RefreshToken });
-            await localStorageService.SetToken(serializedToken);
+            // Server expects refresh token in HttpOnly cookie; call refresh endpoint without body
+            var result = await accountService.RefreshTokenAsync();
+            if (result == null || !result.Success) return string.Empty;
+            // store new access token in-memory
+            await accessTokenProvider.SetTokenAsync(result.Token);
             return result.Token;
         }
     }
